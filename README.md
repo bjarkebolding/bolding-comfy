@@ -15,7 +15,7 @@ extra configuration is needed:
 
     cd data/custom_nodes
     git clone https://github.com/bjarkebolding/bolding-comfy
-    ./spark-comfyui.sh stop && ./spark-comfyui.sh service
+    ./spark-comfyui.sh stop && ./spark-comfyui.sh service --no-bf16-vae
 
 Installing it there also means `backup` records the pack's origin URL and
 commit in its manifest, and `restore` re-clones it at that commit. A checkout
@@ -30,6 +30,23 @@ several installs at one checkout, bind-mount it instead by adding a line to
 
 Requires `av` and `numpy`, both already present in a standard ComfyUI
 install.
+
+## The VAE precision flag
+
+The segment loop node cannot run under `--bf16-vae`, hence the
+`--no-bf16-vae` above. This is not a limitation of these nodes. LTX-2.3's
+audio VAE never casts the incoming waveform to the VAE dtype, so any workflow
+that feeds it audio fails with:
+
+    Input type (float) and bias type (c10::BFloat16) should be the same
+
+The stock `LoadAudio` node hits it too, and so do the LTX-2.3 audio templates
+ComfyUI ships. On a plain ComfyUI install nothing is affected unless you pass
+`--bf16-vae` yourself. spark-comfyui adds it by default as part of the GB10
+fast path, so it needs turning off for these workflows, which
+`--no-bf16-vae` does without giving up the unet and text encoder speedups.
+Adding `--fp32-vae` instead does not help, because ComfyUI's VAE precision
+flags are mutually exclusive and one has already been added by then.
 
 ## Nodes
 
