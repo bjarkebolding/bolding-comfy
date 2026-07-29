@@ -1,0 +1,1163 @@
+{
+ "id": "67701826-8cd8-4b7a-be6b-cf37d99d64c9",
+ "revision": 0,
+ "last_node_id": 24,
+ "last_link_id": 19,
+ "nodes": [
+  {
+   "id": 1,
+   "type": "MarkdownNote",
+   "pos": [
+    -620,
+    40
+   ],
+   "size": [
+    540,
+    1180
+   ],
+   "flags": {},
+   "order": 0,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "READ ME FIRST",
+   "properties": {},
+   "widgets_values": [
+    "# Headlights\n\nEverything is filled in. **Press Run.**\n\n2m28s \u00b7 37 segments \u00b7 1280x704 \u00b7 about 33 minutes\n\n---\n\n### The five groups, left to right\n\n**1 SONG** ACE-Step writes the track from the tags and lyrics.\n\n**2 VIDEO MODELS** Loaders only. Nothing to change.\n\n**3 REFERENCE** Optional still to start from.\n\n**4 SHOT LIST** What happens, and when.\n\n**5 RENDER** Joins the segments and muxes the song.\n\n---\n\n### If you change the length\n\nThree numbers have to agree:\n\n- song `duration` on the lyrics node\n- `segments` x `seg_secs` on the shot list node\n- every timestamp in the shot list must be a multiple of `seg_secs`\n\n`segments x seg_secs` must not exceed `duration`.\n\n---\n\n### Rules the nodes enforce\n\n- `seg_secs` x `fps` divisible by 8\n- `width`, `height` divisible by 64 (1280x704 is the practical 720p)\n- output is exactly `segments x seg_secs x fps` frames = **3552**\n\nIf the frame count comes out higher, the picture is running ahead of the\nsound. That number is the check worth making every time.\n\n---\n\n### Before running\n\n    SPARK_BF16_VAE=0 ./spark-comfyui.sh service\n\nThe LTX audio VAE fails under `--bf16-vae`.\n"
+   ],
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 2,
+   "type": "MarkdownNote",
+   "pos": [
+    40,
+    40
+   ],
+   "size": [
+    380,
+    560
+   ],
+   "flags": {},
+   "order": 1,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Guide \u00b7 the song",
+   "properties": {},
+   "widgets_values": [
+    "## 1 \u00b7 The song\n\nACE-Step 1.5 generates the whole track in one pass, then the video is built\nagainst it.\n\n**tags** describe the record: genre, production, instruments, and the voice\nas its own separate clause. Never write \"no X\" here, there is no negative\nprompt and naming a genre to exclude invites it in.\n\n**lyrics** use `[Section]` markers. Always finish with an `[Outro]` or the\nsong stops instead of resolving.\n\n`cfg` 6.0 and `cfg_scale` 2.5 are the values that render cleanly. Turning\nthem up adds harshness, not style."
+   ],
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 3,
+   "type": "UNETLoader",
+   "pos": [
+    40,
+    640
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 2,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "MODEL",
+     "type": "MODEL",
+     "slot_index": 0,
+     "links": [
+      1
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "UNETLoader"
+   },
+   "widgets_values": [
+    "acestep_v1.5_xl_base_bf16.safetensors",
+    "default"
+   ],
+   "title": "Song model",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 4,
+   "type": "DualCLIPLoader",
+   "pos": [
+    40,
+    820
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 3,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "CLIP",
+     "type": "CLIP",
+     "slot_index": 0,
+     "links": [
+      2
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "DualCLIPLoader"
+   },
+   "widgets_values": [
+    "qwen_0.6b_ace15.safetensors",
+    "qwen_4b_ace15.safetensors",
+    "ace",
+    "default"
+   ],
+   "title": "Song text encoders",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 5,
+   "type": "VAELoader",
+   "pos": [
+    40,
+    1010
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 4,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "VAE",
+     "type": "VAE",
+     "slot_index": 0,
+     "links": [
+      9
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "VAELoader"
+   },
+   "widgets_values": [
+    "ace_1.5_vae.safetensors"
+   ],
+   "title": "Song VAE",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 6,
+   "type": "ModelSamplingAuraFlow",
+   "pos": [
+    40,
+    1130
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 5,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "model",
+     "type": "MODEL",
+     "link": 1
+    }
+   ],
+   "outputs": [
+    {
+     "name": "MODEL",
+     "type": "MODEL",
+     "slot_index": 0,
+     "links": [
+      4
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "ModelSamplingAuraFlow"
+   },
+   "widgets_values": [
+    3.0
+   ],
+   "title": "Flow shift",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 7,
+   "type": "TextEncodeAceStepAudio1.5",
+   "pos": [
+    460,
+    40
+   ],
+   "size": [
+    600,
+    1180
+   ],
+   "flags": {},
+   "order": 6,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "clip",
+     "type": "CLIP",
+     "link": 2
+    }
+   ],
+   "outputs": [
+    {
+     "name": "CONDITIONING",
+     "type": "CONDITIONING",
+     "slot_index": 0,
+     "links": [
+      3,
+      5
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeAceStepAudio1.5"
+   },
+   "widgets_values": [
+    "cinematic alt-pop, modern electronic pop ballad with a driving pulse, 2020s radio-ready polished master, wide commercial mix, sparse felt piano and a low synth pulse under the verses, warm analogue pad layers opening into the chorus, bright plucked synth counter-melody, live-feel drums entering on the pre-chorus with deep round sub bass, clear natural female lead vocal in a warm low-mid register, close-miked and dry, smooth and unaffected, sitting right in front of the mix, big memorable topline, soaring singable chorus hook, doubled vocal and soft harmony stacks on the chorus, vocal runs and ad-libs on the final chorus, wide stereo field with long reverb on the pads while the voice stays dry and close, huge dynamic lift from verse to chorus, emotional and cinematic, 104 BPM, 4/4, D minor, vocals start immediately",
+    "[Verse 1 - sparse piano and a low pulse, vocal close and dry]\nLeft the key on the table\nDidn't turn around to see\nRain came down like it was waiting\nFor somebody just like me\nEvery window going backwards\nEvery light a thing I leave\n\n[Pre-Chorus - drums build, synths rise underneath]\nAnd the wipers keep the time\nAnd the engine holds the line\n\n[Chorus - full production, wide and soaring, doubled vocal]\nDrive till the morning finds me\nDrive till the streetlights go\nI don't need where I'm going\nI just need the road\nHeadlights, headlights\nCutting through the rain\nDrive till the morning finds me\nTill I don't feel a thing\n\n[Verse 2 - stripped back, piano and pulse return]\nThere's a photograph still burning\nOn the dashboard in the glow\nEvery mile it gets a little\nHarder to let go\nBut the road don't ask me questions\nAnd the dark don't need to know\n\n[Pre-Chorus - drums build, synths rise underneath]\nAnd the wipers keep the time\nAnd I'm running out of night\n\n[Chorus - full production, wide and soaring, doubled vocal]\nDrive till the morning finds me\nDrive till the streetlights go\nI don't need where I'm going\nI just need the road\nHeadlights, headlights\nCutting through the rain\nDrive till the morning finds me\nTill I don't feel a thing\n\n[Bridge - everything drops to one voice and a held pad]\nMaybe past the county line\nThere's a version of me who's fine\nMaybe she's already there\nWaiting in the morning air\n\n[Final Chorus - biggest, full band, vocal runs and ad-libs]\nDrive till the morning finds me\nHeadlights cutting through the rain\nDrive till the morning finds me\n\n[Outro - everything falls away, last note holds and decays]\nTill I don't feel a thing\n",
+    7,
+    "fixed",
+    104,
+    150.0,
+    "4",
+    "en",
+    "D minor",
+    true,
+    2.5,
+    0.85,
+    0.9,
+    0,
+    0.0
+   ],
+   "title": "TAGS + LYRICS  \u2190 edit here",
+   "color": "#232",
+   "bgcolor": "#353"
+  },
+  {
+   "id": 8,
+   "type": "ConditioningZeroOut",
+   "pos": [
+    1100,
+    40
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 7,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "conditioning",
+     "type": "CONDITIONING",
+     "link": 3
+    }
+   ],
+   "outputs": [
+    {
+     "name": "CONDITIONING",
+     "type": "CONDITIONING",
+     "slot_index": 0,
+     "links": [
+      6
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "ConditioningZeroOut"
+   },
+   "widgets_values": [],
+   "title": "Empty negative",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 9,
+   "type": "EmptyAceStep1.5LatentAudio",
+   "pos": [
+    1100,
+    170
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 8,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "LATENT",
+     "type": "LATENT",
+     "slot_index": 0,
+     "links": [
+      7
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "EmptyAceStep1.5LatentAudio"
+   },
+   "widgets_values": [
+    150.0,
+    1
+   ],
+   "title": "Song canvas",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 10,
+   "type": "KSampler",
+   "pos": [
+    1100,
+    330
+   ],
+   "size": [
+    340,
+    300
+   ],
+   "flags": {},
+   "order": 9,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "model",
+     "type": "MODEL",
+     "link": 4
+    },
+    {
+     "name": "positive",
+     "type": "CONDITIONING",
+     "link": 5
+    },
+    {
+     "name": "negative",
+     "type": "CONDITIONING",
+     "link": 6
+    },
+    {
+     "name": "latent_image",
+     "type": "LATENT",
+     "link": 7
+    }
+   ],
+   "outputs": [
+    {
+     "name": "LATENT",
+     "type": "LATENT",
+     "slot_index": 0,
+     "links": [
+      8
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "widgets_values": [
+    7,
+    "fixed",
+    50,
+    6.0,
+    "euler",
+    "simple",
+    1.0
+   ],
+   "title": "Song sampler",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 11,
+   "type": "VAEDecodeAudio",
+   "pos": [
+    1100,
+    670
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 10,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "samples",
+     "type": "LATENT",
+     "link": 8
+    },
+    {
+     "name": "vae",
+     "type": "VAE",
+     "link": 9
+    }
+   ],
+   "outputs": [
+    {
+     "name": "AUDIO",
+     "type": "AUDIO",
+     "slot_index": 0,
+     "links": [
+      10,
+      17,
+      19
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecodeAudio"
+   },
+   "widgets_values": [],
+   "title": "Song \u2192 audio",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 12,
+   "type": "SaveAudioAdvanced",
+   "pos": [
+    1100,
+    800
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 11,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "audio",
+     "type": "AUDIO",
+     "link": 10
+    }
+   ],
+   "outputs": [
+    {
+     "name": "audio",
+     "type": "AUDIO",
+     "slot_index": 0,
+     "links": []
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "SaveAudioAdvanced"
+   },
+   "widgets_values": [
+    "audio/headlights",
+    "flac"
+   ],
+   "title": "Save the song (FLAC)",
+   "color": "#223",
+   "bgcolor": "#335"
+  },
+  {
+   "id": 13,
+   "type": "MarkdownNote",
+   "pos": [
+    1520,
+    40
+   ],
+   "size": [
+    380,
+    260
+   ],
+   "flags": {},
+   "order": 12,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Guide \u00b7 models",
+   "properties": {},
+   "widgets_values": [
+    "## 2 \u00b7 Video models\n\nLoaders only. Leave these alone unless you swap checkpoints.\n\nThe speed LoRA at 0.5 is what makes a segment take ~50s instead of minutes."
+   ],
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 14,
+   "type": "CheckpointLoaderSimple",
+   "pos": [
+    1520,
+    340
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 13,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "MODEL",
+     "type": "MODEL",
+     "slot_index": 0,
+     "links": [
+      11
+     ]
+    },
+    {
+     "name": "CLIP",
+     "type": "CLIP",
+     "slot_index": 1,
+     "links": []
+    },
+    {
+     "name": "VAE",
+     "type": "VAE",
+     "slot_index": 2,
+     "links": [
+      14
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "CheckpointLoaderSimple"
+   },
+   "widgets_values": [
+    "ltx-2.3-22b-dev-fp8.safetensors"
+   ],
+   "title": "Video model",
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 15,
+   "type": "LoraLoaderModelOnly",
+   "pos": [
+    1520,
+    480
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 14,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "model",
+     "type": "MODEL",
+     "link": 11
+    }
+   ],
+   "outputs": [
+    {
+     "name": "MODEL",
+     "type": "MODEL",
+     "slot_index": 0,
+     "links": [
+      12
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LoraLoaderModelOnly"
+   },
+   "widgets_values": [
+    "ltx_2.3_22b_distilled_1.1_lora_dynamic_fro09_avg_rank_111_bf16.safetensors",
+    0.5
+   ],
+   "title": "Speed LoRA",
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 16,
+   "type": "LTXAVTextEncoderLoader",
+   "pos": [
+    1520,
+    640
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 15,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "CLIP",
+     "type": "CLIP",
+     "slot_index": 0,
+     "links": [
+      13
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LTXAVTextEncoderLoader"
+   },
+   "widgets_values": [
+    "gemma_3_12B_it_fp4_mixed.safetensors",
+    "ltx-2.3-22b-dev-fp8.safetensors",
+    "default"
+   ],
+   "title": "Video text encoder",
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 17,
+   "type": "LTXVAudioVAELoader",
+   "pos": [
+    1520,
+    800
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 16,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "Audio VAE",
+     "type": "VAE",
+     "slot_index": 0,
+     "links": [
+      15
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LTXVAudioVAELoader"
+   },
+   "widgets_values": [
+    "ltx-2.3-22b-dev-fp8.safetensors"
+   ],
+   "title": "Audio VAE",
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 18,
+   "type": "LatentUpscaleModelLoader",
+   "pos": [
+    1520,
+    920
+   ],
+   "size": [
+    340,
+    130
+   ],
+   "flags": {},
+   "order": 17,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "LATENT_UPSCALE_MODEL",
+     "type": "LATENT_UPSCALE_MODEL",
+     "slot_index": 0,
+     "links": [
+      16
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LatentUpscaleModelLoader"
+   },
+   "widgets_values": [
+    "ltx-2.3-spatial-upscaler-x2-1.1.safetensors"
+   ],
+   "title": "2x upscaler",
+   "color": "#323",
+   "bgcolor": "#535"
+  },
+  {
+   "id": 19,
+   "type": "MarkdownNote",
+   "pos": [
+    1980,
+    40
+   ],
+   "size": [
+    400,
+    380
+   ],
+   "flags": {},
+   "order": 18,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Guide \u00b7 reference",
+   "properties": {},
+   "widgets_values": [
+    "## 3 \u00b7 Reference (optional)\n\nDrag this node's **IMAGE** output onto the shot list node's\n`reference_image` input to start the video from a still.\n\nOnly works if the shot at `[0:00]` describes the person or place in that\nphoto. If they disagree, the model abandons the photo within a few frames\nand you get a flash of it at the start.\n\nLeave it unconnected to invent everything from the prompts."
+   ],
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 20,
+   "type": "LoadImage",
+   "pos": [
+    1980,
+    440
+   ],
+   "size": [
+    400,
+    400
+   ],
+   "flags": {},
+   "order": 19,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "slot_index": 0,
+     "links": []
+    },
+    {
+     "name": "MASK",
+     "type": "MASK",
+     "slot_index": 1,
+     "links": []
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "widgets_values": [
+    "78EA22BC-228D-4646-B1BF-A51069FFA055.PNG"
+   ],
+   "title": "Optional reference still",
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 21,
+   "type": "MarkdownNote",
+   "pos": [
+    1980,
+    880
+   ],
+   "size": [
+    400,
+    560
+   ],
+   "flags": {},
+   "order": 20,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Guide \u00b7 shots",
+   "properties": {},
+   "widgets_values": [
+    "## 4 \u00b7 The shot list\n\n    [0:00]        change the prompt, KEEP the frame chain\n    [0:16 cut]    break the chain, a real scene change\n    [1:20 back]   return to the subject as it was before a cutaway\n\n**Every prompt stands alone.** Anything it does not name gets re-invented,\nso repeat the subject, the lighting and the camera in all of them.\n\n**Name the direction of every camera move.** \"orbits her clockwise\", not\n\"orbits her\". Consecutive segments in one shot share a prompt, so an\nunnamed direction can flip at each join.\n\n**handoff_frames = 9** hands nine frames to the next segment so motion\ncarries across the seam. 1 pins position only and the camera stalls at\nevery join. Must be 8k+1."
+   ],
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 22,
+   "type": "BoldingLTXSegmentLoop",
+   "pos": [
+    2680,
+    40
+   ],
+   "size": [
+    660,
+    1180
+   ],
+   "flags": {},
+   "order": 21,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "model",
+     "type": "MODEL",
+     "link": 12
+    },
+    {
+     "name": "clip",
+     "type": "CLIP",
+     "link": 13
+    },
+    {
+     "name": "vae",
+     "type": "VAE",
+     "link": 14
+    },
+    {
+     "name": "audio_vae",
+     "type": "VAE",
+     "link": 15
+    },
+    {
+     "name": "upscale_model",
+     "type": "LATENT_UPSCALE_MODEL",
+     "link": 16
+    },
+    {
+     "name": "audio",
+     "type": "AUDIO",
+     "link": 17
+    },
+    {
+     "name": "reference_image",
+     "type": "IMAGE",
+     "link": null
+    }
+   ],
+   "outputs": [
+    {
+     "name": "manifest",
+     "type": "STRING",
+     "slot_index": 0,
+     "links": [
+      18
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "BoldingLTXSegmentLoop"
+   },
+   "widgets_values": [
+    "# \"Headlights\" - 2m28s, 37 x 4s segments, 104 BPM, D minor.\n#\n# Four locations, changing with the song, each with its own lighting scheme:\n#   CAR      night, rain, green dash glow + sweeping streetlights  (verses)\n#   NEON     underpass, magenta/cyan strobing                      (pre-chorus)\n#   WAREHOUSE flooded, one hard white shaft, reflections           (choruses)\n#   ROOFTOP  pre-dawn cold blue warming to gold                    (bridge/end)\n#\n# Shot rhythm: verses hold 8s, choruses cut every 4s.\n# Every shot moves the camera and the subject. No shot says \"static\" or\n# \"stays sharp\" - that is what made the last video stand still.\n#\n# Sections: 0:00 V1  0:20 Pre  0:32 Chorus  1:00 V2  1:20 Pre  1:28 Chorus\n#           1:56 Bridge  2:12 Final chorus  2:24 Outro\n\n[0:00]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, both hands on the wheel, inside a car at night in heavy rain, she is behind the wheel, green dashboard glow underlighting her face from below, streetlights sweeping across her in slow regular pulses, rain crawling down the side glass, wipers cutting the frame, deep black outside the windows, palette of green dash light, cold blue street light and black. The streetlights sweep across her face one after another and the wipers beat across the frame while the camera drifts slowly in from the passenger seat, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:08]\nCloser shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, glancing to the mirror and back, inside a car at night in heavy rain, she is behind the wheel, green dashboard glow underlighting her face from below, streetlights sweeping across her in slow regular pulses, rain crawling down the side glass, wipers cutting the frame, deep black outside the windows, palette of green dash light, cold blue street light and black. The camera arcs slowly around toward her from the windscreen as light pulses over her, 50mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:16 cut]\nClose B-roll with no people in frame: rain sheeting down a windscreen at night, wipers sweeping it clear in hard rhythmic strokes, headlights of oncoming cars smearing into wet bokeh beyond the glass. Palette of cold blue, wet black and white smears. The camera pushes slowly toward the glass as the wipers cut across, 50mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:20 cut]\nMedium-close shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens harder, gripping the wheel, inside the car passing through a neon underpass, banks of magenta and cyan tube light strobing across her face in fast bars, wet concrete pillars flicking past the window, palette of magenta, cyan and black. The tube lights rip across her face in fast bars and the pillars flick past while the camera tracks sideways with the car, 40mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:28]\nTight shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, chin lifting, inside the car passing through a neon underpass, banks of magenta and cyan tube light strobing across her face in fast bars, wet concrete pillars flicking past the window, palette of magenta, cyan and black. The strobing colour accelerates across her as the camera pushes in hard, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:32 cut]\nWide shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens at full voice, standing ankle-deep in the water at the centre of a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. She turns and steps through the water sending rings outward while the camera cranes down toward her through the shaft of light, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:36]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, arms opening, walking forward through the water in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The water breaks around her boots and the camera tracks backward ahead of her, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:40]\nClose shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, head tipping back on the hook, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. Dust turns in the beam behind her while the camera orbits her slowly, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:44]\nWide low shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens and kicking through the water, spray thrown up into the shaft of light, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The spray hangs and falls while the camera sweeps low across the water surface toward her, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:48]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, turning on the spot with her jacket flaring, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. Her reflection turns with her in the water as the camera arcs around her, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:52]\nClose shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens the last line of the hook, wet hair stuck to her cheek, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The camera drifts in and slightly down as rain falls through the beam, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[0:56]\nWide shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, small in the frame at the centre of a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water, water stretching away in every direction. The camera rises steadily on a crane as she keeps singing below, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:00 cut]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens quieter now, one hand on the wheel, inside a car at night in heavy rain, she is behind the wheel, green dashboard glow underlighting her face from below, streetlights sweeping across her in slow regular pulses, rain crawling down the side glass, wipers cutting the frame, deep black outside the windows, palette of green dash light, cold blue street light and black. Streetlights pulse over her and the camera drifts slowly across from the passenger side, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:08]\nCloser shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, eyes going to something on the dashboard and away again, inside a car at night in heavy rain, she is behind the wheel, green dashboard glow underlighting her face from below, streetlights sweeping across her in slow regular pulses, rain crawling down the side glass, wipers cutting the frame, deep black outside the windows, palette of green dash light, cold blue street light and black. The camera pushes in gently as the light sweeps past, 50mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:16 cut]\nClose B-roll with no people in frame: a creased photograph propped on a car dashboard at night, its edges curling, green dash light underlighting it, streetlights sweeping across it in pulses, rain shadows crawling over the image. Palette of green, cold blue and black. The camera drifts slowly across the photograph as the light pulses over it, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:20 cut]\nTight shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens with her jaw set, inside the car passing through a neon underpass, banks of magenta and cyan tube light strobing across her face in fast bars, wet concrete pillars flicking past the window, palette of magenta, cyan and black. The tube lights tear across her face faster and faster while the camera pushes in hard, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:28 cut]\nWide shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens at full voice in the centre of a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water, rain now falling heavily through the roof hole around her. The rain hammers the water into a field of rings while the camera cranes down toward her, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:32]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens and striding forward through the water in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. Water sheets off her boots as the camera tracks backward ahead of her, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:36]\nClose shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, rain running down her face, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The camera orbits her fast as the light flares behind her head, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:40]\nWide low shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens and spinning through the water, spray exploding outward into the beam, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The camera sweeps low across the surface through the spray, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:44]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, soaked through, jacket hanging heavy, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The camera arcs around her while rain falls through the shaft, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:48]\nClose shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens the hook, eyes closed then open, in a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water. The camera drifts in slowly through the falling rain, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:52]\nWide shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, alone at the centre of a vast derelict warehouse flooded with ankle-deep still water, one hard white shaft of light falling from a hole in the roof, her reflection doubled perfectly in the water, dust and rain drifting through the beam, everything beyond the shaft in total darkness, palette of hard white, black and silver water, the beam and her reflection the only bright things. The camera rises on a crane and pulls away as she sings below, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[1:56 cut]\nMedium-close shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens almost under her breath, standing on a city rooftop at first light, wet gravel and vent stacks, the skyline low and grey behind her, cold blue pre-dawn air warming to gold at the horizon, her breath faintly visible, palette of cold blue turning to warm gold. Her breath clouds and drifts away while the camera drifts slowly around her, 50mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[2:04]\nCloser shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, turning her face toward the lightening horizon, on a city rooftop at first light, wet gravel and vent stacks, the skyline low and grey behind her, cold blue pre-dawn air warming to gold at the horizon, her breath faintly visible, palette of cold blue turning to warm gold. The gold at the horizon spreads and lifts across her face as the camera arcs slowly around her, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[2:12]\nMedium-wide shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens at full voice with her arms opening, on a city rooftop at first light, wet gravel and vent stacks, the skyline low and grey behind her, cold blue pre-dawn air warming to gold at the horizon, her breath faintly visible, palette of cold blue turning to warm gold as the sun breaks the skyline. Gold light floods across the rooftop and her jacket lifts in the wind while the camera cranes up and back, 28mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[2:16]\nMedium shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens, walking toward the roof edge, on a city rooftop at first light, wet gravel and vent stacks, the skyline low and grey behind her, cold blue pre-dawn air warming to gold at the horizon, her breath faintly visible, palette of cold blue turning to warm gold. The light climbs her as the camera tracks backward ahead of her, 35mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[2:20]\nClose shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery, singing, mouth open and clearly forming each word, eyes moving between the road and the lens the final line, gold light across one side of her face, on a city rooftop at first light, wet gravel and vent stacks, the skyline low and grey behind her, cold blue pre-dawn air warming to gold at the horizon, her breath faintly visible, palette of cold blue turning to warm gold. The camera drifts in as the wind moves her hair, 65mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n\n[2:24]\nWide shot of a woman in her late twenties with dark wet shoulder-length hair pushed back off her face, wearing a black tank top under an open black leather jacket, silver rings on both hands, no other jewellery holding the last note on a city rooftop at first light, wet gravel and vent stacks, the skyline low and grey behind her, cold blue pre-dawn air warming to gold at the horizon, her breath faintly visible, palette of cold blue turning to warm gold, the whole city opening out gold beneath her, as the camera flies steadily backward and upward away from the roof until she is a small bright figure against the sunrise. The light spreads across the skyline as the camera retreats, 24mm lens, anamorphic lens flare, shallow depth of field, cinematic film grain, photorealistic.\n",
+    "cartoon, childish, ugly, still frame, frozen mouth, closed mouth, motionless face, standing still, static shot, blurry, washed out, deformed hands, oversaturated",
+    37,
+    4.0,
+    24.0,
+    1280,
+    704,
+    1234,
+    "fixed",
+    9,
+    "headlights_seg"
+   ],
+   "title": "SHOT LIST  \u2190 edit here",
+   "color": "#232",
+   "bgcolor": "#353"
+  },
+  {
+   "id": 23,
+   "type": "MarkdownNote",
+   "pos": [
+    2680,
+    1260
+   ],
+   "size": [
+    400,
+    300
+   ],
+   "flags": {},
+   "order": 22,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "title": "Guide \u00b7 render",
+   "properties": {},
+   "widgets_values": [
+    "## 5 \u00b7 Render\n\nJoins the segments and muxes the song across the joins, so the picture has\nseams but the audio never does.\n\n`fade_out_secs` covers generated songs that stop rather than resolve.\n\nThe finished file appears in the media assets pane and in `output/`."
+   ],
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 24,
+   "type": "BoldingStitchSegments",
+   "pos": [
+    3100,
+    1260
+   ],
+   "size": [
+    380,
+    260
+   ],
+   "flags": {},
+   "order": 23,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "manifest",
+     "type": "STRING",
+     "link": 18
+    },
+    {
+     "name": "audio",
+     "type": "AUDIO",
+     "link": 19
+    }
+   ],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "BoldingStitchSegments"
+   },
+   "widgets_values": [
+    24.0,
+    16,
+    2.5,
+    "headlights"
+   ],
+   "title": "RENDER  \u2190 output here",
+   "color": "#232",
+   "bgcolor": "#353"
+  }
+ ],
+ "links": [
+  [
+   1,
+   3,
+   0,
+   6,
+   0,
+   "MODEL"
+  ],
+  [
+   2,
+   4,
+   0,
+   7,
+   0,
+   "CLIP"
+  ],
+  [
+   3,
+   7,
+   0,
+   8,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   4,
+   6,
+   0,
+   10,
+   0,
+   "MODEL"
+  ],
+  [
+   5,
+   7,
+   0,
+   10,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   6,
+   8,
+   0,
+   10,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   7,
+   9,
+   0,
+   10,
+   3,
+   "LATENT"
+  ],
+  [
+   8,
+   10,
+   0,
+   11,
+   0,
+   "LATENT"
+  ],
+  [
+   9,
+   5,
+   0,
+   11,
+   1,
+   "VAE"
+  ],
+  [
+   10,
+   11,
+   0,
+   12,
+   0,
+   "AUDIO"
+  ],
+  [
+   11,
+   14,
+   0,
+   15,
+   0,
+   "MODEL"
+  ],
+  [
+   12,
+   15,
+   0,
+   22,
+   0,
+   "MODEL"
+  ],
+  [
+   13,
+   16,
+   0,
+   22,
+   1,
+   "CLIP"
+  ],
+  [
+   14,
+   14,
+   2,
+   22,
+   2,
+   "VAE"
+  ],
+  [
+   15,
+   17,
+   0,
+   22,
+   3,
+   "VAE"
+  ],
+  [
+   16,
+   18,
+   0,
+   22,
+   4,
+   "LATENT_UPSCALE_MODEL"
+  ],
+  [
+   17,
+   11,
+   0,
+   22,
+   5,
+   "AUDIO"
+  ],
+  [
+   18,
+   22,
+   0,
+   24,
+   0,
+   "STRING"
+  ],
+  [
+   19,
+   11,
+   0,
+   24,
+   1,
+   "AUDIO"
+  ]
+ ],
+ "groups": [
+  {
+   "id": 1,
+   "title": "1 \u00b7 SONG",
+   "bounding": [
+    20,
+    -30,
+    1780,
+    1290
+   ],
+   "color": "#3f5159",
+   "font_size": 26,
+   "flags": {}
+  },
+  {
+   "id": 2,
+   "title": "2 \u00b7 VIDEO MODELS",
+   "bounding": [
+    1500,
+    -30,
+    420,
+    1090
+   ],
+   "color": "#593f7a",
+   "font_size": 26,
+   "flags": {}
+  },
+  {
+   "id": 3,
+   "title": "3 \u00b7 REFERENCE",
+   "bounding": [
+    1960,
+    -30,
+    440,
+    890
+   ],
+   "color": "#7a3f3f",
+   "font_size": 26,
+   "flags": {}
+  },
+  {
+   "id": 4,
+   "title": "4 \u00b7 SHOT LIST",
+   "bounding": [
+    1960,
+    850,
+    1120,
+    1290
+   ],
+   "color": "#3f7a4f",
+   "font_size": 26,
+   "flags": {}
+  },
+  {
+   "id": 5,
+   "title": "5 \u00b7 RENDER",
+   "bounding": [
+    2660,
+    1230,
+    840,
+    340
+   ],
+   "color": "#7a6a3f",
+   "font_size": 26,
+   "flags": {}
+  }
+ ],
+ "config": {},
+ "extra": {},
+ "version": 0.4
+}
