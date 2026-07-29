@@ -1,5 +1,5 @@
 {
- "id": "67701826-8cd8-4b7a-be6b-cf37d99d64c9",
+ "id": "00cb07fa-5187-48d8-9c8e-aeb1b9cc370b",
  "revision": 0,
  "last_node_id": 24,
  "last_link_id": 19,
@@ -760,7 +760,7 @@
     "Node name for S&R": "LoadImage"
    },
    "widgets_values": [
-    "78EA22BC-228D-4646-B1BF-A51069FFA055.PNG"
+    ""
    ],
    "title": "Optional reference still",
    "color": "#322",
