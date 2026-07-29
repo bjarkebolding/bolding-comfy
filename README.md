@@ -4,10 +4,27 @@ Personal ComfyUI nodes.
 
 ## Install
 
-Clone or copy this folder into ComfyUI's `custom_nodes/`.
+Clone into ComfyUI's `custom_nodes/` and restart:
 
-If you run ComfyUI through `spark-comfyui`, keep the pack outside that repo
-and bind-mount it instead by adding a line to `spark-mounts.conf`:
+    cd ComfyUI/custom_nodes
+    git clone https://github.com/bjarkebolding/bolding-comfy
+
+With [spark-comfyui](https://github.com/bjarkebolding/spark-comfyui) that is
+`data/custom_nodes/`, which is already bind-mounted into the container, so no
+extra configuration is needed:
+
+    cd data/custom_nodes
+    git clone https://github.com/bjarkebolding/bolding-comfy
+    ./spark-comfyui.sh stop && ./spark-comfyui.sh service
+
+Installing it there also means `backup` records the pack's origin URL and
+commit in its manifest, and `restore` re-clones it at that commit. A checkout
+kept elsewhere and bind-mounted is invisible to both, so a restored machine
+would come back without these nodes.
+
+If you do want the source outside the ComfyUI tree, for instance to point
+several installs at one checkout, bind-mount it instead by adding a line to
+`spark-mounts.conf`, and keep your own backups of it:
 
     mount = /path/to/bolding-comfy:/opt/ComfyUI/custom_nodes/bolding-comfy
 
